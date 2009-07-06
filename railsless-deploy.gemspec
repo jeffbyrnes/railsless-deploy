@@ -1,9 +1,9 @@
 spec = Gem::Specification.new do |s|
   s.name = 'railsless-deploy'
-  s.version = '0.0.11'
+  s.version = '0.0.12'
   s.summary = "Deployment recipe for Capistrano without the Railsisms, "
   s.description = %{Railsless deploy recipe for capistrano, replaces the default}
-  s.files = Dir['lib/**/*.rb']
+  s.files = ['lib/deploy.rb']
   s.require_path = 'lib'
   s.has_rdoc = false
   s.autorequire = 'deploy'

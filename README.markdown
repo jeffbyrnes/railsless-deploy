@@ -16,7 +16,7 @@ Open your application's `Capfile` and replace the following:
 With these three lines:
 
     require 'rubygems'
-    require 'leehambley-railsless-deploy'
+    require 'railsless-deploy'
     load    'config/deploy'
 
 You should then be able to proceed as you would usually, you may want to familiarise yourself with the truncated list of tasks, you can get a full list with:

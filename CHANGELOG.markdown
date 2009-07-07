@@ -1,5 +1,10 @@
 # Lee Hambley's Railsless Deploy
 
+## 0.0.15 - July 7th 2009
+
+* Removed `require 'yaml'` as we don't use it
+* Removed the tasks (which contained only deprecation warnings) from deploy:start, deploy:stop and deploy:restart.
+
 ## 0.0.14 - July 7th 2009
 
 * Added dates to changelog.

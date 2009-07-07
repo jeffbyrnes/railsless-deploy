@@ -33,12 +33,9 @@ If you want to try before you buy, here's the list of tasks included with this v
     cap deploy:cold          # Deploys and starts a `cold' application.
     cap deploy:pending       # Displays the commits since your last deploy.
     cap deploy:pending:diff  # Displays the `diff' since your last deploy.
-    cap deploy:restart       # restart is deprecated.
     cap deploy:rollback      # Rolls back to a previous version and restarts.
     cap deploy:rollback:code # Rolls back to the previously deployed version.
     cap deploy:setup         # Prepares one or more servers for deployment.
-    cap deploy:start         # start is deprecated.
-    cap deploy:stop          # stop is deprecated.
     cap deploy:symlink       # Updates the symlink to the most recently deployed ...
     cap deploy:update        # Copies your project and updates the symlink.
     cap deploy:update_code   # Copies your project to the remote servers.

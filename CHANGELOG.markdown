@@ -1,8 +1,12 @@
 # Lee Hambley's Railsless Deploy
 
-## 0.0.12
+## 0.0.13
 
 * Fixes a README problem and includes the README and CHANGELOG in the gem.
+
+## 0.0.12
+
+* Trivial documentation changes
 
 ## 0.0.11
 

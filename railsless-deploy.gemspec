@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name = 'railsless-deploy'
-  s.version = '0.0.13'
+  s.version = '0.0.14'
   s.summary = "Deployment recipe for Capistrano without the Railsisms, "
   s.description = %{Railsless deploy recipe for capistrano, replaces the default}
   s.files = ['lib/railsless-deploy.rb', 'README.markdown', 'CHANGELOG.markdown']

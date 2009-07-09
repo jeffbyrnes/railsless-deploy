@@ -9,11 +9,10 @@ If you want to get the most out of Capistrano and you do not want to have to dea
 
 ## Usage
 
-Open your application's `Capfile` and replace the following:
+Open your application's `Capfile` and make it look like this, the last three lines are the magic. also you can safely remove line two if you won't be loading additional plugin files. (this is a railsism):
 
-    load 'deploy'
-
-With these three lines:
+    load 'deploy' if respond_to?(:namespace) # cap2 differentiator
+    # Dir['vendor/plugins/*/recipes/*.rb'].each { |plugin| load(plugin) }
 
     require 'rubygems'
     require 'railsless-deploy'
@@ -42,6 +41,7 @@ If you want to try before you buy, here's the list of tasks included with this v
     cap deploy:upload        # Copy files to the currently deployed version.
     cap invoke               # Invoke a single command on the remote servers.
     cap shell                # Begin an interactive Capistrano session.
+
 
 ## Bugs & Feedback
 

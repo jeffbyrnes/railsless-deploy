@@ -4,8 +4,9 @@ If you want to get the most out of Capistrano and you do not want to have to dea
 
 ## Installation
 
-    # gem sources -a http://gems.github.com/
-    # gem install leehambley-railsless-deploy
+    # gem install railsless-deploy -s http://gemcutter.org
+
+If you are reading this document and wondering why we moved, we were subject to the problems when GitHub stopped building gems, thus we moved to [gemcutter](http://gemcutter.org/), [read more here](http://github.com/blog/515-gem-building-is-defunct).
 
 ## Usage
 

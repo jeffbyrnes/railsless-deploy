@@ -4,13 +4,15 @@ If you want to get the most out of Capistrano and you do not want to have to dea
 
 ## Installation
 
-    # gem install railsless-deploy -s http://gemcutter.org
+    # gem install railsless-deploy
 
-If you are reading this document and wondering why we moved, we were subject to the problems when GitHub stopped building gems, thus we moved to [gemcutter](http://gemcutter.org/), [read more here](http://github.com/blog/515-gem-building-is-defunct).
+## Bundler Usage
+
+As of bundler 0.9 you should use `:require => nil` when listing this gem in your Gemfile.
 
 ## Usage
 
-Open your application's `Capfile` and make it begins like this, the last three lines are the magic:
+Open your application's `Capfile` and make it begins like this:
 
     require 'rubygems'
     require 'railsless-deploy'

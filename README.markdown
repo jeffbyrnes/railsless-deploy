@@ -10,10 +10,7 @@ If you are reading this document and wondering why we moved, we were subject to 
 
 ## Usage
 
-Open your application's `Capfile` and make it look like this, the last three lines are the magic. also you can safely remove line two if you won't be loading additional plugin files. (this is a railsism):
-
-    load 'deploy' if respond_to?(:namespace) # cap2 differentiator
-    # Dir['vendor/plugins/*/recipes/*.rb'].each { |plugin| load(plugin) }
+Open your application's `Capfile` and make it begins like this, the last three lines are the magic:
 
     require 'rubygems'
     require 'railsless-deploy'

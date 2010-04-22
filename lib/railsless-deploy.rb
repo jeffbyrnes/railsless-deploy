@@ -43,7 +43,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   _cset :version_dir,       "releases"
   _cset :shared_dir,        "shared"
-  _cset :shared_children,   %w(system log pids)
+  _cset :shared_children,   [] # Empty!
   _cset :current_dir,       "current"
 
   _cset(:releases_path)     { File.join(deploy_to, version_dir) }

@@ -145,14 +145,13 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   namespace :deploy do
     desc <<-DESC
-      Deploys your project. This calls both `update' and `restart'. Note that \
+      Deploys your project. Handy wrapper to hook into the beginning of the deployment. Note that \
       this will generally only work for applications that have already been deployed \
       once. For a "cold" deploy, you'll want to take a look at the `deploy:cold' \
       task, which handles the cold start specifically.
     DESC
     task :default do
       update
-      # restart
     end
 
     desc <<-DESC

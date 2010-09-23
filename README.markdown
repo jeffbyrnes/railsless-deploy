@@ -18,6 +18,8 @@ Open your application's `Capfile` and make it begins like this:
     require 'railsless-deploy'
     load    'config/deploy'
 
+Taking care to remove the original `require 'deploy'` as this is where all the standard tasks are defined.
+
 You should then be able to proceed as you would usually, you may want to familiarise yourself with the truncated list of tasks, you can get a full list with:
 
     $ cap -T

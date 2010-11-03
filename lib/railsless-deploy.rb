@@ -151,6 +151,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       task, which handles the cold start specifically.
     DESC
     task :default do
+      logger.debug "Beginning railsless-deploy task - deploy:default"
       update
     end
 
@@ -167,6 +168,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       will not destroy any deployed revisions or data.
     DESC
     task :setup, :except => { :no_release => true } do
+      logger.debug "Beginning railsless-deploy task - deploy:setup"
       dirs = [deploy_to, releases_path, shared_path]
       dirs += shared_children.map { |d| File.join(shared_path, d) }
       run "#{try_sudo} mkdir -p #{dirs.join(' ')} && #{try_sudo} chmod g+w #{dirs.join(' ')}"
@@ -181,6 +183,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       handy if you want to deploy, but not immediately restart your application.
     DESC
     task :update do
+      logger.debug "Beginning railsless-deploy task - deploy:update"
       transaction do
         update_code
         symlink
@@ -200,6 +203,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       defaults to :checkout).
     DESC
     task :update_code, :except => { :no_release => true } do
+      logger.debug "Beginning railsless-deploy task - deploy:update_code"
       on_rollback { run "rm -rf #{release_path}; true" }
       strategy.deploy!
       finalize_update
@@ -221,6 +225,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       set to true, which is the default.
     DESC
     task :finalize_update, :except => { :no_release => true } do
+      logger.debug "Beginning railsless-deploy task - deploy:finalize_update"
       run "chmod -R g+w #{latest_release}" if fetch(:group_writable, true)
     end
 
@@ -234,6 +239,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       except `restart').
     DESC
     task :symlink, :except => { :no_release => true } do
+      logger.debug "Beginning railsless-deploy task - deploy:symlink"
       on_rollback do
         if previous_release
           run "rm -f #{current_path}; ln -s #{previous_release} #{current_path}; true"
@@ -264,6 +270,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         $ cap deploy:upload FILES='config/apache/*.conf'
     DESC
     task :upload, :except => { :no_release => true } do
+      logger.debug "Beginning railsless-deploy task - deploy:upload"
       files = (ENV["FILES"] || "").split(",").map { |f| Dir[f.strip] }.flatten
       abort "Please specify at least one file or directory to update (via the FILES environment variable)" if files.empty?
 
@@ -277,6 +284,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         ever) need to be called directly.
       DESC
       task :revision, :except => { :no_release => true } do
+        logger.debug "Beginning railsless-deploy task - rollback:upload"
         if previous_release
           run "rm #{current_path}; ln -s #{previous_release} #{current_path}"
         else
@@ -290,6 +298,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         (if ever) need to be called directly.
       DESC
       task :cleanup, :except => { :no_release => true } do
+        logger.debug "Beginning railsless-deploy task - rollback:cleanup"
         run "if [ `readlink #{current_path}` != #{current_release} ]; then rm -rf #{current_release}; fi"
       end
 
@@ -299,6 +308,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         current release will be removed from the servers.
       DESC
       task :code, :except => { :no_release => true } do
+        logger.debug "Beginning railsless-deploy task - rollback:code"
         revision
         cleanup
       end
@@ -309,6 +319,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         back where you were, on the previously deployed version.
       DESC
       task :default do
+        logger.debug "Beginning railsless-deploy task - rollback:default"
         revision
         cleanup
       end
@@ -322,6 +333,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       for your environment, set the :use_sudo variable to false instead.
     DESC
     task :cleanup, :except => { :no_release => true } do
+      logger.debug "Beginning railsless-deploy task - deploy:cleanup"
       count = fetch(:keep_releases, 5).to_i
       if count >= releases.length
         logger.important "no old releases to clean up"
@@ -348,6 +360,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         depend :remote, :directory, "/u/depot/files"
     DESC
     task :check, :except => { :no_release => true } do
+      logger.debug "Beginning railsless-deploy task - deploy:check"
       dependencies = strategy.check!
 
       other = fetch(:dependencies, {})
@@ -382,6 +395,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       invoke `deploy:start' to fire up the application servers.
     DESC
     task :cold do
+      logger.debug "Beginning railsless-deploy task - deploy:cold"
       update
     end
 
@@ -392,6 +406,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         not be supported on all SCM's.
       DESC
       task :diff, :except => { :no_release => true } do
+        logger.debug "Beginning railsless-deploy task - pending:diff"
         system(source.local.diff(current_revision))
       end
 
@@ -401,6 +416,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         might not be supported on all SCM's.
       DESC
       task :default, :except => { :no_release => true } do
+        logger.debug "Beginning railsless-deploy task - pending:default"
         from = source.next_revision(current_revision)
         system(source.local.log(from))
       end

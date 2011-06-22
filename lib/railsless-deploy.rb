@@ -169,7 +169,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     task :setup, :except => { :no_release => true } do
       dirs = [deploy_to, releases_path, shared_path]
       dirs += shared_children.map { |d| File.join(shared_path, d) }
-      run "#{try_sudo} mkdir -p #{dirs.join(' ')} && #{try_sudo} chmod g+w #{dirs.join(' ')}"
+      run "#{try_sudo} mkdir -p #{dirs.join(' ')}"
+      run "#{try_sudo} chmod g+w #{dirs.join(' ')}" if fetch(:group_writable, true)
     end
 
     desc <<-DESC

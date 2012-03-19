@@ -223,11 +223,12 @@ Capistrano::Configuration.instance(:must_exist).load do
     task :finalize_update, :except => { :no_release => true } do
       run "chmod -R g+w #{latest_release}" if fetch(:group_writable, true)
       
-      
       shared_children.map do |d|
-        run "ln -s #{shared_path}/#{d.split('/').last} #{latest_release}/#{d}"
+        run <<-CMD
+          rm -rf #{latest_release}/#{d} &&
+          ln -s #{shared_path}/#{d.split('/').last} #{latest_release}/#{d}
+        CMD
       end
-      
     end
 
     desc <<-DESC

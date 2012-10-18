@@ -168,7 +168,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     DESC
     task :setup, :except => { :no_release => true } do
       dirs = [deploy_to, releases_path, shared_path]
-      dirs += shared_children.map { |d| File.join(shared_path, d) }
+      dirs += shared_children.map { |d| File.join(shared_path, d.split('/').last) }
       run "#{try_sudo} mkdir -p #{dirs.join(' ')} && #{try_sudo} chmod g+w #{dirs.join(' ')}"
     end
 
@@ -221,6 +221,17 @@ Capistrano::Configuration.instance(:must_exist).load do
       set to true, which is the default.
     DESC
     task :finalize_update, :except => { :no_release => true } do
+      # mkdir -p is making sure that the directories are there for some SCM's that don't
+      # save empty folders
+      shared_children.map do |d|
+        if (d.rindex('/')) then
+          run "rm -rf #{latest_release}/#{d} && mkdir -p #{latest_release}/#{d.slice(0..(d.rindex('/')))}"
+        else
+          run "rm -rf #{latest_release}/#{d}"
+        end
+        run "ln -s #{shared_path}/#{d.split('/').last} #{latest_release}/#{d}"
+      end
+
       run "chmod -R g+w #{latest_release}" if fetch(:group_writable, true)
     end
 

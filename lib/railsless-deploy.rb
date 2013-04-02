@@ -28,6 +28,8 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset(:deploy_to) { "/u/apps/#{application}" }
   _cset(:revision)  { source.head }
 
+_cset(:ls_opts) { "-xt" }
+
   # =========================================================================
   # These variables should NOT be changed unless you are very confident in
   # what you are doing. Make sure you understand all the implications of your
@@ -51,7 +53,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset(:current_path)      { File.join(deploy_to, current_dir) }
   _cset(:release_path)      { File.join(releases_path, release_name) }
 
-  _cset(:releases)          { capture("ls -xt #{releases_path}").split.reverse }
+  _cset(:releases)          { capture("ls #{ls_opts} #{releases_path}").split.reverse }
   _cset(:current_release)   { File.join(releases_path, releases.last) }
   _cset(:previous_release)  { releases.length > 1 ? File.join(releases_path, releases[-2]) : nil }
 

@@ -246,6 +246,16 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     desc <<-DESC
+      Deprecated. Use `deploy:create_symlink` instead.
+    DESC
+    task :symlink, :except => { :no_release => true } do
+      warn "[Deprecation Warning] This API has changed, please use `deploy:create_symlink` instead of" \
+           " `deploy:symlink`."
+
+      create_symlink
+    end
+
+    desc <<-DESC
       Copy files to the currently deployed version. This is useful for updating \
       files piecemeal, such as when you need to quickly deploy only a single \
       file. Some files, such as updated templates, images, or stylesheets, \

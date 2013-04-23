@@ -233,6 +233,13 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
 
       run "chmod -R g+w #{latest_release}" if fetch(:group_writable, true)
+      
+      shared_children.map do |d|
+        run <<-CMD
+          rm -rf #{latest_release}/#{d} &&
+          ln -s #{shared_path}/#{d.split('/').last} #{latest_release}/#{d}
+        CMD
+      end
     end
 
     desc <<-DESC

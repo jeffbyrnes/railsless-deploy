@@ -1,5 +1,10 @@
 # Lee Hambley's Railsless Deploy
 
+## 1.1.1 - April 23rd 2013
+
+* Various changes around linking of shared children, and changes to keep some
+  familiarity with the Capistrano main recipe structure.
+
 ## 0.0.15 - July 7th 2009
 
 * Removed `require 'yaml'` as we don't use it

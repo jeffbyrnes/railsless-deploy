@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Lee Hambley"]
-  s.date = "2012-09-21"
+  s.date = "2013-04-23"
   s.description = "Replacement for the rails deploy strategy which ships with Capistrano, allows you to deploy any platform with ease; some people have had huge success with this deploying rails projects where they needed to customise their deploy strategy beyond the code which ships with the Capistrano gem."
   s.email = "lee.hambley@gmail.com"
   s.extra_rdoc_files = [

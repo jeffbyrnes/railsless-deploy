@@ -52,7 +52,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset(:release_path)      { File.join(releases_path, release_name) }
 
   _cset(:releases)          { capture("ls -xt #{releases_path}").split.reverse }
-  _cset(:current_release)   { File.join(releases_path, releases.last) }
+  _cset(:current_release)   { releases.any? ? File.join(releases_path, releases.last) : nil }
   _cset(:previous_release)  { releases.length > 1 ? File.join(releases_path, releases[-2]) : nil }
 
   _cset(:current_revision)  { capture("cat #{current_path}/REVISION").chomp }

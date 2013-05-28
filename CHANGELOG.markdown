@@ -1,5 +1,9 @@
 # Lee Hambley's Railsless Deploy
 
+## 1.1.2 - May 28 2013
+
+* Small change not to set latest_release if there are no old releases.
+
 ## 1.1.1 - April 23rd 2013
 
 * Various changes around linking of shared children, and changes to keep some

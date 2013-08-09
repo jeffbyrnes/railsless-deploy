@@ -67,6 +67,9 @@ Capistrano::Configuration.instance(:must_exist).load do
   # actually exist. This variable lets tasks like create_symlink work either in the
   # standalone case, or during deployment.
   _cset(:latest_release) { exists?(:deploy_timestamped) ? release_path : current_release }
+  # Similar situation with rollback, if deploying, the current_release should be
+  # the target of a rollback, but if standalone, the previous release should be the target
+  _cset(:rollback_release) { exists?(:deploy_timestamped) ? current_release : previous_release }
 
   # =========================================================================
   # These are helper methods that will be available to your recipes.
@@ -253,8 +256,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     DESC
     task :create_symlink, :except => { :no_release => true } do
       on_rollback do
-        if previous_release
-          run "rm -f #{current_path}; ln -s #{previous_release} #{current_path}; true"
+        if rollback_release
+          run "rm -f #{current_path}; ln -s #{rollback_release} #{current_path}; true"
         else
           logger.important "no previous release to rollback to, rollback of symlink skipped"
         end
@@ -305,8 +308,8 @@ Capistrano::Configuration.instance(:must_exist).load do
         ever) need to be called directly.
       DESC
       task :revision, :except => { :no_release => true } do
-        if previous_release
-          run "rm #{current_path}; ln -s #{previous_release} #{current_path}"
+        if rollback_release
+          run "rm #{current_path}; ln -s #{rollback_release} #{current_path}"
         else
           abort "could not rollback the code because there is no prior release"
         end

@@ -1,3 +1,7 @@
+# This Project Is Obsolete
+
+**Note:** Capistrano 3 (http://www.capistranorb.com/) doesn't ship with any Railsisms, and is better in almost every measurable way than Capistrano 2 + `raileless-deploy`. It's time to switch, as I won't be maintaining this Gem anymore!
+
 # Lee Hambley's Railsless Deploy
 
 If you want to get the most out of Capistrano and you do not want to have to deal with the *railsisms* that ship by default, this is the gem for you.

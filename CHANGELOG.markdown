@@ -1,5 +1,9 @@
 # Lee Hambley's Railsless Deploy
 
+## 1.1.3 – Dec 13 2013
+
+* Manually merge in code from [Capistrano 2.15.5's `lib/capistrano/recipes/deploy.rb`](https://github.com/capistrano/capistrano/blob/2.15.5/lib/capistrano/recipes/deploy.rb) to provide feature parity with last release of Cap 2.x.
+
 ## 1.1.2 - May 28 2013
 
 * Small change not to set latest_release if there are no old releases.

@@ -22,7 +22,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   # are not sufficient.
   # =========================================================================
 
-  _cset :scm, :subversion
+  _cset(:scm) { scm_default }
   _cset :deploy_via, :checkout
 
   _cset(:deploy_to) { "/u/apps/#{application}" }
@@ -39,6 +39,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   _cset(:strategy)          { Capistrano::Deploy::Strategy.new(deploy_via, self) }
 
+  # If overriding release name, please also select an appropriate setting for :releases below.
   _cset(:release_name)      { set :deploy_timestamped, true; Time.now.utc.strftime("%Y%m%d%H%M%S") }
 
   _cset :version_dir,       "releases"
@@ -51,26 +52,55 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset(:current_path)      { File.join(deploy_to, current_dir) }
   _cset(:release_path)      { File.join(releases_path, release_name) }
 
-  _cset(:releases)          { capture("ls -xt #{releases_path}").split.reverse }
-  _cset(:current_release)   { releases.any? ? File.join(releases_path, releases.last) : nil }
+  _cset(:releases)          { capture("#{try_sudo} ls -x #{releases_path}", :except => { :no_release => true }).split.sort }
+  _cset(:current_release)   { releases.length > 0 ? File.join(releases_path, releases.last) : nil }
   _cset(:previous_release)  { releases.length > 1 ? File.join(releases_path, releases[-2]) : nil }
 
-  _cset(:current_revision)  { capture("cat #{current_path}/REVISION").chomp }
-  _cset(:latest_revision)   { capture("cat #{current_release}/REVISION").chomp }
-  _cset(:previous_revision) { capture("cat #{previous_release}/REVISION").chomp }
+  _cset(:current_revision)  { capture("#{try_sudo} cat #{current_path}/REVISION",     :except => { :no_release => true }).chomp }
+  _cset(:latest_revision)   { capture("#{try_sudo} cat #{current_release}/REVISION",  :except => { :no_release => true }).chomp }
+  _cset(:previous_revision) { capture("#{try_sudo} cat #{previous_release}/REVISION", :except => { :no_release => true }).chomp if previous_release }
 
   _cset(:run_method)        { fetch(:use_sudo, true) ? :sudo : :run }
 
-  # some tasks, like create_symlink, need to always point at the latest release, but
+  # some tasks, like symlink, need to always point at the latest release, but
   # they can also (occassionally) be called standalone. In the standalone case,
   # the timestamped release_path will be inaccurate, since the directory won't
-  # actually exist. This variable lets tasks like create_symlink work either in the
+  # actually exist. This variable lets tasks like symlink work either in the
   # standalone case, or during deployment.
   _cset(:latest_release) { exists?(:deploy_timestamped) ? release_path : current_release }
 
+  _cset :maintenance_basename, "maintenance"
+  _cset(:maintenance_template_path) { File.join(File.dirname(__FILE__), "templates", "maintenance.rhtml") }
   # =========================================================================
   # These are helper methods that will be available to your recipes.
   # =========================================================================
+
+  # Checks known version control directories to intelligently set the version
+  # control in-use. For example, if a .svn directory exists in the project,
+  # it will set the :scm variable to :subversion, if a .git directory exists
+  # in the project, it will set the :scm variable to :git and so on. If no
+  # directory is found, it will default to :git.
+  def scm_default
+    if File.exist? '.git'
+      :git
+    elsif File.exist? '.accurev'
+      :accurev
+    elsif File.exist? '.bzr'
+      :bzr
+    elsif File.exist? '.cvs'
+      :cvs
+    elsif File.exist? '_darcs'
+      :darcs
+    elsif File.exist? '.hg'
+      :mercurial
+    elsif File.exist? '.perforce'
+      :perforce
+    elsif File.exist? '.svn'
+      :subversion
+    else
+      :none
+    end
+  end
 
   # Auxiliary helper method for the `deploy:check' task. Lets you set up your
   # own dependencies.
@@ -94,8 +124,19 @@ Capistrano::Configuration.instance(:must_exist).load do
   # logs the command then executes it locally.
   # returns the command output as a string
   def run_locally(cmd)
+    if dry_run
+      return logger.debug "executing locally: #{cmd.inspect}"
+    end
     logger.trace "executing locally: #{cmd.inspect}" if logger
-    `#{cmd}`
+    output_on_stdout = nil
+    elapsed = Benchmark.realtime do
+      output_on_stdout = `#{cmd}`
+    end
+    if $?.to_i > 0 # $? is command exit code (posix style)
+      raise Capistrano::LocalArgumentError, "Command #{cmd} returned status code #{$?}"
+    end
+    logger.trace "command finished in #{(elapsed * 1000).round}ms" if logger
+    output_on_stdout
   end
 
   # If a command is given, this will try to execute the given command, as
@@ -111,7 +152,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   # THUS, if you want to try to run something via sudo, and what to use the
   # root user, you'd just to try_sudo('something'). If you wanted to try_sudo as
   # someone else, you'd just do try_sudo('something', :as => "bob"). If you
-  # always wanted sudo to run as a particular user, you could do 
+  # always wanted sudo to run as a particular user, you could do
   # set(:admin_runner, "bob").
   def try_sudo(*args)
     options = args.last.is_a?(Hash) ? args.pop : {}
@@ -174,7 +215,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc <<-DESC
       Copies your project and updates the symlink. It does this in a \
-      transaction, so that if either `update_code' or `create_symlink' fail, all \
+      transaction, so that if either `update_code' or `symlink' fail, all \
       changes made to the remote servers will be rolled back, leaving your \
       system in the same state it was in before `update' was invoked. Usually, \
       you will want to call `deploy' instead of `update', but `update' can be \
@@ -218,28 +259,44 @@ Capistrano::Configuration.instance(:must_exist).load do
       public/stylesheets, and public/javascripts so that the times are \
       consistent (so that asset timestamping works).  This touch process \
       is only carried out if the :normalize_asset_timestamps variable is \
-      set to true, which is the default.
+      set to true, which is the default. The asset directories can be overridden \
+      using the :public_children variable.
     DESC
     task :finalize_update, :except => { :no_release => true } do
+      escaped_release = latest_release.to_s.shellescape
+      commands = []
+      commands << "chmod -R -- g+w #{escaped_release}" if fetch(:group_writable, true)
+
       # mkdir -p is making sure that the directories are there for some SCM's that don't
       # save empty folders
-      shared_children.map do |d|
-        if (d.rindex('/')) then
-          run "rm -rf #{latest_release}/#{d} && mkdir -p #{latest_release}/#{d.slice(0..(d.rindex('/')))}"
+      shared_children.map do |dir|
+        d = dir.shellescape
+        if (dir.rindex('/')) then
+          commands += ["rm -rf -- #{escaped_release}/#{d}",
+                       "mkdir -p -- #{escaped_release}/#{dir.slice(0..(dir.rindex('/'))).shellescape}"]
         else
-          run "rm -rf #{latest_release}/#{d}"
+          commands << "rm -rf -- #{escaped_release}/#{d}"
         end
-        run "ln -s #{shared_path}/#{d.split('/').last} #{latest_release}/#{d}"
+        commands << "ln -s -- #{shared_path}/#{dir.split('/').last.shellescape} #{escaped_release}/#{d}"
       end
 
-      run "chmod -R g+w #{latest_release}" if fetch(:group_writable, true)
-      
+      commands << "chmod -R g+w #{latest_release}" if fetch(:group_writable, true)
+      run commands.join(' && ') if commands.any?
+
       shared_children.map do |d|
         run <<-CMD
           rm -rf #{latest_release}/#{d} &&
           ln -s #{shared_path}/#{d.split('/').last} #{latest_release}/#{d}
         CMD
       end
+    end
+
+    desc <<-DESC
+      Deprecated API. This has become deploy:create_symlink, please update your recipes
+    DESC
+    task :symlink, :except => { :no_release => true } do
+      Kernel.warn "[Deprecation Warning] This API has changed, please hook `deploy:create_symlink` instead of `deploy:symlink`."
+      create_symlink
     end
 
     desc <<-DESC
@@ -254,23 +311,13 @@ Capistrano::Configuration.instance(:must_exist).load do
     task :create_symlink, :except => { :no_release => true } do
       on_rollback do
         if previous_release
-          run "rm -f #{current_path}; ln -s #{previous_release} #{current_path}; true"
+          run "#{try_sudo} rm -f #{current_path}; #{try_sudo} ln -s #{previous_release} #{current_path}; true"
         else
           logger.important "no previous release to rollback to, rollback of symlink skipped"
         end
       end
 
-      run "rm -f #{current_path} && ln -s #{latest_release} #{current_path}"
-    end
-
-    desc <<-DESC
-      Deprecated. Use `deploy:create_symlink` instead.
-    DESC
-    task :symlink, :except => { :no_release => true } do
-      warn "[Deprecation Warning] This API has changed, please use `deploy:create_symlink` instead of" \
-           " `deploy:symlink`."
-
-      create_symlink
+      run "#{try_sudo} rm -f #{current_path} && #{try_sudo} ln -s #{latest_release} #{current_path}"
     end
 
     desc <<-DESC
@@ -306,7 +353,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       DESC
       task :revision, :except => { :no_release => true } do
         if previous_release
-          run "rm #{current_path}; ln -s #{previous_release} #{current_path}"
+          run "#{try_sudo} rm #{current_path};#{try_sudo} ln -s #{previous_release} #{current_path}"
         else
           abort "could not rollback the code because there is no prior release"
         end
@@ -318,13 +365,14 @@ Capistrano::Configuration.instance(:must_exist).load do
         (if ever) need to be called directly.
       DESC
       task :cleanup, :except => { :no_release => true } do
-        run "if [ `readlink #{current_path}` != #{current_release} ]; then rm -rf #{current_release}; fi"
+        run "if [ `readlink #{current_path}` != #{current_release} ]; then #{try_sudo} rm -rf #{current_release}; fi"
       end
 
       desc <<-DESC
         Rolls back to the previously deployed version. The `current' symlink will \
         be updated to point at the previously deployed version, and then the \
-        current release will be removed from the servers.
+        current release will be removed from the servers. You'll generally want \
+        to call `rollback' instead, as it performs a `restart' as well.
       DESC
       task :code, :except => { :no_release => true } do
         revision
@@ -351,16 +399,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     DESC
     task :cleanup, :except => { :no_release => true } do
       count = fetch(:keep_releases, 5).to_i
-      if count >= releases.length
-        logger.important "no old releases to clean up"
-      else
-        logger.info "keeping #{count} of #{releases.length} deployed releases"
-
-        directories = (releases - releases.last(count)).map { |release|
-          File.join(releases_path, release) }.join(" ")
-
-        try_sudo "rm -rf #{directories}"
-      end
+      try_sudo "ls -1dt #{releases_path}/* | tail -n +#{count + 1} | #{try_sudo} xargs rm -rf"
     end
 
     desc <<-DESC

@@ -4,6 +4,8 @@
 
 # Lee Hambley's Railsless Deploy
 
+[![Gem Version](http://img.shields.io/gem/v/railsless-deploy.svg?style=flat)](https://rubygems.org/gems/railsless-deploy)
+
 If you want to get the most out of Capistrano and you do not want to have to deal with the *railsisms* that ship by default, this is the gem for you.
 
 ## Installation
